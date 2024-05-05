@@ -3,8 +3,7 @@ import pickle
 from sklearn.feature_extraction.text import TfidfVectorizer
 import pandas as pd
 import openpyxl
-from config import Config
-from sqlalchemy import create_engine
+
 from app import app, db
 
 
@@ -61,22 +60,7 @@ def load_vectorizer_sparse(vectorizer_path, sparse_path):
   sparse = pickle.load(open(sparse_path,'rb'))
   return vectorizer, sparse
 
-def from_df_to_database(df, file_path):
-  # ini nanti diganti, jadi hanya fokus untuk df ke database
-  # logic mengenai pengecekan column dimasukkan ke main 
-  # programnya aja. termasuk untuk mengganti escape character
-  # atau yang lainnya di bagian abstract di situ.
-  engine = create_engine(Config.SQLALCHEMY_DATABASE_URI)
-  # df = pd.read_excel('file_path')
-  # df['abstract'] = df['abstract'].astype(str).apply(openpyxl.utils.escape.unescape)
-  
-  with engine.begin() as connection:
-    df.to_sql(
-      name='docs',
-      con=connection,
-      if_exists='append',
-      index=False,
-    )
+
 
 # df = pd.read_excel('dataset\egdata.xlsx')
 # df['abstract'] = df['abstract'].astype(str).apply(openpyxl.utils.escape.unescape)
@@ -90,6 +74,3 @@ def from_df_to_database(df, file_path):
 #     index=False,
 #   )
 
-def from_database_to_df(query, columns):
-  df = pd.read_sql(query.statement, query.bind, columns=columns)
-  return df
