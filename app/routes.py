@@ -1,12 +1,24 @@
 from app import app, db, api
+from app.api_utils import read_index
 from app.models import Doc
 from flask import redirect, render_template, request, url_for
+from helper import preprocessing, query_expansion
 from process_docs import get_list_docs, load_vectorizer_sparse
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
+from PaginatedObj import PaginateObj
+from sqlalchemy import func
+
+from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
+from Sastrawi.StopWordRemover.StopWordRemoverFactory import StopWordRemoverFactory
+
+from gensim.models import KeyedVectors
+from config import Config
+
 
 app.register_blueprint(api.api)
 
+w2v_model = KeyedVectors.load(Config.W2V_MODEL, mmap='r')
 
 @app.route("/")
 @app.route("/index")
@@ -23,27 +35,53 @@ def index():
 
 @app.route("/search")
 def search():
-  query = request.args.get("query")
-  page = request.args.get("page")
+  # TODO
+  # Implementasikan jumlah kata untuk QE
+  
+  query = request.args.get("query").strip()
+  curr_page = request.args.get("page") or 1
   if not query:
     return redirect(url_for('index')) 
   
-  docs_raw = get_list_docs(input_data='title_only')
+  print('query awal', query)
+    
+  tf_idf_vectorizer, tf_idf_sparse, idx_to_docid = read_index()
+  docs = Doc.query.all() # return dalam bentuk list
   
-  vectorizer_path = './pickle_model/tf_idf_vectorizer.pkl'
-  sparse_path = './pickle_model/tf_idf_sparse.pkl'
+  # logic preprocessing dan QE
+  query = preprocessing(query)
+  sastrawi_stemmer = StemmerFactory().create_stemmer()
+  stop = StopWordRemoverFactory().get_stop_words()
+  query = " ".join([word for word in query.split() if word not in stop])
+  if request.args.get('qe') == 'w2v':
+    vocab = tf_idf_vectorizer.get_feature_names_out()
+    query = query_expansion(w2v_model, query, vocab, topn=3)
+    query = sastrawi_stemmer.stem(query)
+  # TODO
+  # cek lebih baik stem dulu atau stem belakangan (di sini)
+  query = sastrawi_stemmer.stem(query)
   
-  tf_idf_vectorizer, tf_idf_sparse = load_vectorizer_sparse(vectorizer_path, sparse_path)
-  
+  # transform ke vector
   query_vector = tf_idf_vectorizer.transform([query])
   cosine_similarities = cosine_similarity(query_vector, tf_idf_sparse)
-  results = [(docs_raw[i], cosine_similarities[0][i]) for i in range(len(docs_raw))]
-  results.sort(key=lambda x: x[1], reverse=True)
-  for doc, similarity in results[:10]:
-    if similarity > 0:
-      print(f"Similarity: {similarity:.6f} - {doc}\n")
+  # results = [(docs_raw['id'][i], cosine_similarities[0][i]) for i in range(len(docs_raw))]  # awal
+  docs_similarities = [(docs[i].id, cosine_similarities[0][i]) for i in range(len(docs))]
+  docs_similarities.sort(key=lambda x: x[1], reverse=True)
+  docs_similarities_score = [doc_similarity[1] for doc_similarity in docs_similarities if doc_similarity[1] > 0]
+  paginated_docs_similarities_score = PaginateObj(docs_similarities_score, int(curr_page), 10) #returns the first page of 10 elements
 
-  return redirect(url_for('index'))
+  doc_ids = [doc_similarity[0] for doc_similarity in docs_similarities if doc_similarity[1] > 0]
+  # query_results = Doc.query.filter(Doc.id.in_(doc_ids)).order_by(func.idx(doc_ids, Doc.id)) # error
+  total_docs = len(doc_ids)
+  
+  order_expressions = [(Doc.id==i).desc() for i in doc_ids]
+  query_results = Doc.query.filter(Doc.id.in_(doc_ids)).order_by(*order_expressions)
+  paginated_results = query_results.paginate(page=int(curr_page), per_page=10, error_out=False)
+  zip_results = zip(paginated_results, paginated_docs_similarities_score.items)
+
+  print('query akhir', query)
+  return render_template('index.html', page=paginated_results, total_docs=total_docs, zip_results=zip_results)
+
 
 @app.route("/docs/<int:id>")
 def docs(id):

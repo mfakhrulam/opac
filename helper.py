@@ -207,7 +207,7 @@ def query_expansion(model, query, vocab, topn=5):
   Parameter:
       model (Word2Vec): Model word embedding untuk mencari kata-kata serupa.
       query (str): Query asli yang akan diperluas.
-      vocab (set): Set kata-kata dalam vocabulary yang digunakan untuk mengfilter kata-kata yang tidak ada.
+      vocab (list): List kata-kata dalam vocabulary yang digunakan untuk mengfilter kata-kata yang tidak ada.
       topn (int): Jumlah kata-kata serupa yang diambil untuk setiap kata (default adalah 5).
 
   Returns:
@@ -222,8 +222,9 @@ def query_expansion(model, query, vocab, topn=5):
       similar_word = []
 
     for item in similar_word:
-      if sastrawi_stemmer.stem(item[0]) in vocab and sastrawi_stemmer.stem(item[0]) not in new_query:
-        new_query.append(sastrawi_stemmer.stem(item[0]))
+      stemmed_item = sastrawi_stemmer.stem(item[0])
+      if stemmed_item in vocab and stemmed_item not in new_query:
+        new_query.append(stemmed_item)
 
   return " ".join(new_query)
 

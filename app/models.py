@@ -36,7 +36,7 @@ class Doc(db.Model):
   updated_at: so.Mapped[Optional[datetime]] = so.mapped_column(nullable=True, onupdate=sa.func.now())
   
   def get_paginated_docs(page, per_page=20):
-    page = db.paginate(db.select(Doc).order_by(Doc.created_at), page=page, per_page=per_page)
+    page = db.paginate(db.select(Doc).order_by(Doc.created_at.desc()), page=page, per_page=per_page)
     return page
   
   def to_json(self):
@@ -55,4 +55,4 @@ class Doc(db.Model):
     }
   
   def __repr__(self):
-    return '<Docs {}>'.format(self.title)
+    return '<Docs {} - {}>'.format(self.id, self.title)
