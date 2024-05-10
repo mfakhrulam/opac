@@ -68,14 +68,10 @@ def build_index():
     pickle.dump(tfidf_vectorizer, file)
   with open('pickle_model/tfidf_sparse.pkl', 'wb') as file:
     pickle.dump(tf_idf_sparse, file)
-  with open('pickle_model/idx_to_docid.pkl', 'wb') as file:
-    pickle.dump(idx_to_docid, file)
 
 def read_index():
   with open('pickle_model/tfidf_vectorizer.pkl', 'rb') as file:
     tfidf_vectorizer = pickle.load(file)
   with open('pickle_model/tfidf_sparse.pkl', 'rb') as file:
     tf_idf_sparse = pickle.load(file)
-  with open('pickle_model/idx_to_docid.pkl', 'rb') as file:
-    idx_to_docid = pickle.load(file)
-  return tfidf_vectorizer, tf_idf_sparse, idx_to_docid
+  return tfidf_vectorizer, tf_idf_sparse
