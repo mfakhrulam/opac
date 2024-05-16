@@ -49,7 +49,7 @@ def from_df_to_database(df):
     )
 
 def build_index():
-  # kemudian ambil semua data dari database, ambil colomn yang 
+  # ambil semua data dari database, ambil colomn yang 
   df = pd.read_sql(db.session.query(Doc).statement, db.session.connection())
   input_title_only = df['title']
   # input_title_subject_abstract = df['title'] + '. ' + df['subject'] + '. '+ df['abstract']
@@ -68,7 +68,7 @@ def build_index():
     pickle.dump(tfidf_vectorizer, file)
   with open('pickle_model/tfidf_sparse.pkl', 'wb') as file:
     pickle.dump(tf_idf_sparse, file)
-
+  
 def read_index():
   with open('pickle_model/tfidf_vectorizer.pkl', 'rb') as file:
     tfidf_vectorizer = pickle.load(file)
