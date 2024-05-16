@@ -59,6 +59,14 @@ def create_doc():
 
 @api.route("/docs/batch", methods=['POST'])
 def create_doc_batch():
+  # TODO
+  # jika ada record yang sama maka skip
+  # ntar coba dulu aja di colab,
+  # cek dulu, pastikan judul atau klasifikasi tidak ada yang sama
+  # jika ada yang sama, hapus atau jangan dimasukkan ke db
+  # 
+  
+  
   # jika file tidak kosong, masuk ke logic
   if secure_filename(request.files['file'].filename) != '':
     file = request.files['file']
