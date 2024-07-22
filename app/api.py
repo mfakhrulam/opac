@@ -209,3 +209,15 @@ def delete_doc(id):
   except Exception as e:
     db.session.rollback()
     return f"Error terjadi: {str(e)}", 500  # Internal Server Error
+
+
+@api.route("/docs", methods=["DELETE"])
+def delete_docs():
+  try:
+    db.session.query(Doc).delete()
+    db.session.commit()
+    # no need to build index
+    return "Dokumen Berhasil Dihapus!", 200  # Created status code
+  except Exception as e:
+    db.session.rollback()
+    return f"Error terjadi: {str(e)}", 500  # Internal Server Error
