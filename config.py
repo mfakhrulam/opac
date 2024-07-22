@@ -8,6 +8,6 @@ class Config:
   SQLALCHEMY_TRACK_MODIFICATIONS = False
 
   UPLOAD_FOLDER = 'app/static/uploads'
-  W2V_MODEL = 'we_model\idwiki_new_lower_word2vec_200\idwiki_new_lower_word2vec_200.model'
-  W2V_MODEL_SG = 'we_model\idwiki_new_lower_word2vec_300\idwiki_new_lower_word2vec_300.model'
+  W2V_MODEL = 'we_model/idwiki_new_lower_word2vec_200/idwiki_new_lower_word2vec_200.model'
+  W2V_MODEL_SG = 'we_model/idwiki_new_lower_word2vec_300/idwiki_new_lower_word2vec_300.model'
   # SECRET_KEY = os.environ.get('SECRET_KEY') or 'default-very-secret-key'
