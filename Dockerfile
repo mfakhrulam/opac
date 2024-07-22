@@ -31,6 +31,7 @@ COPY download_model.sh .
 RUN chmod +x download_model.sh
 
 # Jalankan script untuk mendownload dan meng-unzip model dari Google Drive
+RUN ./download_model.sh
 
 # Download NLTK data
 RUN python -m nltk.downloader punkt
