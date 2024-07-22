@@ -33,35 +33,13 @@
       </div>
     </div>
   </section>
-  <!-- Search bar -->
-  <!-- <div class="max-w-screen-xl px-4 mx-auto">
-    <form class="max-w-md mx-auto">
-      <label for="default-search"
-        class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
-      <div class="relative">
-        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-          <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
-            fill="none" viewBox="0 0 20 20">
-            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
-          </svg>
-        </div>
-        <input type="search" id="default-search"
-          class="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder="Masukkan judul dokumen" required />
-        <button type="submit"
-          class="text-white absolute end-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Cari</button>
-      </div>
-    </form>
-  </div> -->
-  <!-- End of search bar -->
 
   <!-- Content -->
   <div class="max-w-screen-xl px-4 mx-auto">
     <section class="flex row flex-col-reverse md:flex-row gap-x-6">
 
       <!-- Tampilan Dokumen semua dokumen atau dokumen yang ditemukan -->
-      {% if request.args.get('query') is none %}
+      {% if request.args.get('query') == "" or request.args.get('query') is none %}
       <div class="flex-col md:basis-8/12 lg:basis-9/12 ">
         <!-- <h2 class="my-4 text-2xl tracking-tight font-bold leading-tight text-gray-900 dark:text-white">Koleksi
           Penelitian</h2> -->
@@ -81,7 +59,7 @@
             <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">{{ doc.title }}</h5>
           </a>
           <p class="mb-2 text-lg font-semibold tracking-tight text-gray-900 dark:text-white">{{ doc.author }} </p>
-          <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">{{ doc.abstract }}</p>
+          <p class="line-clamp-3 mb-3 font-normal text-gray-700 dark:text-gray-400">{{ doc.abstract }}</p>
           <span
             class="inline-block bg-green-100 text-green-800 text-sm font-medium me-2 px-2.5 py-0.5 mb-2 rounded dark:bg-green-900 dark:text-green-300">D{{ doc.id }}</span>
           <span
@@ -125,7 +103,7 @@
             >{{ doc.title }}</h5>
           <a/>
           <p class="mb-2 text-lg font-semibold tracking-tight text-gray-900 dark:text-white">{{ doc.author }} </p>
-          <p class="mb-3 font-normal text-gray-700 dark:text-gray-400">{{ doc.abstract }}</p>
+          <p class="line-clamp-3 mb-3 font-normal text-gray-700 dark:text-gray-400">{{ doc.abstract }}</p>
           <span
             class="inline-block bg-green-100 text-green-800 text-sm font-medium me-2 px-2.5 py-0.5 mb-2 rounded dark:bg-green-900 dark:text-green-300">D{{ doc.id }}</span>
           <span
@@ -141,7 +119,7 @@
         <!-- Pagination -->
         
 
-        {{ render_pagination(page, "index") }}
+        {{ render_pagination(page, "search") }}
         
         <!-- End of Pagination -->
       </div>
@@ -190,7 +168,7 @@
                   <input id="w2v-qe" type="radio" value="w2v" name="qe" required 
                     class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
                   <label for="w2v-qe"
-                    class="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">W2V QE</label>
+                    class="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Ya</label>
                 </div>
               </li>
 
@@ -211,7 +189,7 @@
                   <input id="w2v-qe" type="radio" value="w2v" name="qe" required checked
                     class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-700 dark:focus:ring-offset-gray-700 focus:ring-2 dark:bg-gray-600 dark:border-gray-500">
                   <label for="w2v-qe"
-                    class="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">W2V QE</label>
+                    class="w-full py-3 ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Ya</label>
                 </div>
               </li>
 
@@ -220,7 +198,7 @@
             </ul>
 
             <h3 class="mb-4 font-semibold text-gray-900 sdark:text-white" id="nqe-title">Jumlah Kata QE</h3>
-            <ul
+            <!-- <ul
               class="mb-4 items-center w-full text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg sm:flex dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               id="nqe-ul">
               
@@ -252,33 +230,43 @@
                 </div>
               </li>
               
-            </ul>
+            </ul> -->
 
+            <div class="relative flex items-center mb-2" id="nqe-div">
+              <button type="button" id="decrement-button" data-input-counter-decrement="nqe-input" class="bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600 hover:bg-gray-200 border border-gray-300 rounded-s-lg p-3 h-11 focus:ring-gray-100 dark:focus:ring-gray-700 focus:ring-2 focus:outline-none">
+                <svg class="w-3 h-3 text-gray-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h16"/>
+                </svg>
+              </button>
+              <input type="text" name="nqe" id="nqe-input" data-input-counter data-input-counter-min="1" data-input-counter-max="5" aria-describedby="helper-text-explanation" class="font-medium bg-gray-50 border-x-0 border-gray-300 h-11 text-center text-gray-900 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full py-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="1" value="{{ request.args.get('nqe') if request.args.get('nqe') is not none }}" />
+              
+              <button type="button" id="increment-button" data-input-counter-increment="nqe-input" class="bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600 hover:bg-gray-200 border border-gray-300 rounded-e-lg p-3 h-11 focus:ring-gray-100 dark:focus:ring-gray-700 focus:ring-2 focus:outline-none">
+                <svg class="w-3 h-3 text-gray-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 1v16M1 9h16"/>
+                </svg>
+              </button>
+            </div>
 
 
             <!-- Pop over -->
-            <p class="flex items-center text-sm text-gray-500 dark:text-gray-400">This is just some informational text
+            <p class="flex items-center text-sm text-gray-500 dark:text-gray-400">Keterangan
               <button data-popover-target="popover-description" data-popover-placement="bottom-end" type="button"><svg
                   class="w-4 h-4 ms-2 text-gray-400 hover:text-gray-500" aria-hidden="true" fill="currentColor"
                   viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                   <path fill-rule="evenodd"
                     d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z"
                     clip-rule="evenodd"></path>
-                </svg><span class="sr-only">Show information</span></button>
+                </svg><span class="sr-only">Tampilkan Informasi</span></button>
             </p>
             <div data-popover id="popover-description" role="tooltip"
               class="absolute z-10 invisible inline-block text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 w-72 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400">
               <div class="p-3 space-y-2">
-                <h3 class="font-semibold text-gray-900 dark:text-white">Activity growth - Incremental</h3>
-                <p>Report helps navigate cumulative growth of community activities. Ideally, the chart should have a
-                  growing trend, as stagnating chart signifies a significant decrease of community activity.</p>
-                <h3 class="font-semibold text-gray-900 dark:text-white">Calculation</h3>
-                <p>For each date bucket, the all-time volume of activities is calculated. This means that activities
-                  in period n contain all activities up to period n, plus the activities generated by your community
-                  in period.</p>
-                <a href="#"
-                  class="flex items-center font-medium text-blue-600 dark:text-blue-500 dark:hover:text-blue-600 hover:text-blue-700 hover:underline">Read
-                  more <svg class="w-2 h-2 ms-1.5 rtl:rotate-180" aria-hidden="true"
+                <h3 class="font-semibold text-gray-900 dark:text-white">Query Expansion (QE)</h3>
+                <p>Query expansion akan melakukan perluasan query yang dimasukkan dengan menambahkan kata yang mirip dari query awal.</p>
+                <h3 class="font-semibold text-gray-900 dark:text-white">Jumlah Kata QE</h3>
+                <p>Jumlah kata QE adalah jumlah kata yang akan ditambahkan untuk setiap kata dalam query awal.</p>
+                <a href="{{ url_for('qe') }}"
+                  class="flex items-center font-medium text-blue-600 dark:text-blue-500 dark:hover:text-blue-600 hover:text-blue-700 hover:underline">Buka halaman QE <svg class="w-2 h-2 ms-1.5 rtl:rotate-180" aria-hidden="true"
                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
                     <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="m1 9 4-4-4-4" />
@@ -402,27 +390,37 @@
   $(document).ready(function() {
     if ($("input[type='radio'][name=qe]:checked").val() == "w2v") {
       $("input[type='radio'][name=nqe]").prop("required",true);
+      $("#nqe-input").prop("required",true);
+      $("#nqe-input").val("{{ request.args.get('nqe') if request.args.get('nqe') is not none }}");
       $("#nqe-title").show();
       $("#nqe-ul").show();
+      $("#nqe-div").show();
     } else {
       $("input[type='radio'][name=nqe]").prop('required',false);
       $("input[type='radio'][name=nqe]").prop("checked", false);
+      $("#nqe-input").prop("required",false);
+      $("#nqe-input").val("");
       $("#nqe-title").hide();
       $("#nqe-ul").hide();
+      $("#nqe-div").hide();
     }
 
     $("input[type='radio'][name=qe]").click(() => {
       if ($("input[type='radio'][name=qe]:checked").val() == "w2v") {
         $("input[type='radio'][name=nqe]").prop('required',true);
+        $("#nqe-input").prop("required",true);
+        $("#nqe-input").val("{{ request.args.get('nqe') if request.args.get('nqe') is not none }}");
         $("#nqe-title").show();
         $("#nqe-ul").show();
-
+        $("#nqe-div").show();
       } else {
         $("input[type='radio'][name=nqe]").prop('required',false);
         $("input[type='radio'][name=nqe]").prop("checked", false);
+        $("#nqe-input").prop("required",false);
+        $("#nqe-input").val("");
         $("#nqe-title").hide();
         $("#nqe-ul").hide();
-
+        $("#nqe-div").hide();
       }
     })
 
