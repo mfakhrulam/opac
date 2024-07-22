@@ -1,4 +1,4 @@
-from collections import Counter, OrderedDict
+from collections import Counter, OrderedDict, defaultdict
 import math
 import re
 
@@ -13,6 +13,7 @@ from nltk import word_tokenize
 from nltk.tokenize.regexp import regexp_tokenize
 
 from gensim.models import KeyedVectors
+from operator import itemgetter
 
 def preprocessing(text):
   """
@@ -200,7 +201,7 @@ def cosim(query_tfidf, doc_tfidf):
     print(e)
 
 
-def query_expansion(model, query, vocab, topn=5):
+def query_expansion(model, query, vocab, topn=5, vectorizer=None, detailed=False):
   """
   Generate query baru dengan menemukan kata-kata yang serupa untuk setiap kata dalam query aslinya menggunakan model word embedding yang diberikan.
 
@@ -209,24 +210,86 @@ def query_expansion(model, query, vocab, topn=5):
       query (str): Query asli yang akan diperluas.
       vocab (list): List kata-kata dalam vocabulary yang digunakan untuk mengfilter kata-kata yang tidak ada.
       topn (int): Jumlah kata-kata serupa yang diambil untuk setiap kata (default adalah 5).
+      vectorizer (TfidfVectorizer): TfidfVectorizer yang digunakan untuk menghitung TF-IDF.
+      detailed (bool): True jika ingin menampilkan detail kata-kata yang diperluas, False jika tidak (default adalah False).
 
   Returns:
       str: Query yang diperluas dengan kata-kata yang serupa dimasukkan.
+      dict of list (opsional): Dictionary yang berisi kata-kata yang diperluas dengan kata-kata yang serupa.
+      csr_matrix (opsional): TfidfVectorizer yang digunakan untuk menghitung TF-IDF.
   """
   sastrawi_stemmer = StemmerFactory().create_stemmer()
-  new_query = [word for word in query.split()]
+  new_query = []
+  query_expansion_dict = defaultdict(list)
   for word in query.split():
+    counter = 0
     try:
-      similar_word = model.wv.most_similar(word, topn=topn)
+      similar_word = model.wv.most_similar(word, topn=100)
     except:
       similar_word = []
 
     for item in similar_word:
-      stemmed_item = sastrawi_stemmer.stem(item[0])
-      if stemmed_item in vocab and stemmed_item not in new_query:
-        new_query.append(stemmed_item)
+      if counter >= topn:
+        break
+      if sastrawi_stemmer.stem(item[0]) in vocab \
+          and sastrawi_stemmer.stem(item[0]) not in new_query \
+          and sastrawi_stemmer.stem(item[0]) not in query.split():
+        new_query.append(sastrawi_stemmer.stem(item[0]))
+        query_expansion_dict[word].append((sastrawi_stemmer.stem(item[0]), item[1]))
+        counter = counter + 1
+      
+  if vectorizer and detailed:
+    query_vector = vectorizer.transform([' '.join(new_query)])
+    return query + ' ' + ' '.join(new_query), query_expansion_dict, query_vector
 
-  return " ".join(new_query)
+  if detailed:
+    return query + ' ' + ' '.join(new_query), query_expansion_dict
+
+  if vectorizer:
+    query_vector = vectorizer.transform([' '.join(new_query)])
+    return query + ' ' + ' '.join(new_query), query_vector
+  
+  return query + ' ' + ' '.join(new_query)
+
+def query_expansion_reweighting(model, query, vocab, vectorizer, topn=5):
+  """
+  Generate query baru dengan menemukan kata-kata yang serupa untuk setiap kata 
+  dalam query aslinya menggunakan model word embedding yang diberikan.    
+  """
+  # Bobot untuk vektor query awal
+  bobot_awal = 1
+  # Bobot untuk vektor query expansion
+  bobot_expansion = 0.5
+  candidate_query = []
+  sastrawi_stemmer = StemmerFactory().create_stemmer()
+  new_query = []
+  for word in query.split():
+    try:
+      similar_words = model.wv.most_similar(word, topn=topn)
+      print(similar_words)
+    except:
+      similar_words = []
+    
+    for item in similar_words:
+      if sastrawi_stemmer.stem(item[0]) in vocab \
+          and sastrawi_stemmer.stem(item[0]) not in new_query \
+          and sastrawi_stemmer.stem(item[0]) not in query.split():
+        new_query.append(sastrawi_stemmer.stem(item[0]))
+        candidate_query.append((sastrawi_stemmer.stem(item[0]), item[1]))
+  
+  candidate_query.sort(key = itemgetter(1), reverse=True)
+  print("========CANDIDATE QUERY=======")
+  print(candidate_query)
+  query_vector_awal = vectorizer.transform([query])
+
+  # Vektor query expansion
+  query_vector_expansion = vectorizer.transform([' '.join(new_query)])
+  print('query vector expansion in function')
+  print(query_vector_expansion)
+  
+  # Vektor terpadu
+  concat_query_vector = bobot_awal * query_vector_awal + bobot_expansion * query_vector_expansion
+  return query + ' ' + ' '.join(new_query), concat_query_vector
 
 
 def vectorSpaceModel(query, doc_dict, idf, tfidf_scr, qe=False, topn=5):
