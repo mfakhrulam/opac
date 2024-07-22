@@ -1,7 +1,7 @@
 from app import app, db, api
 from app.api_utils import read_index
 from app.models import Doc, User
-from flask import flash, redirect, render_template, request, url_for
+from flask import flash, redirect, render_template, request, send_from_directory, url_for
 from helper import preprocessing, query_expansion
 from sklearn.metrics.pairwise import cosine_similarity
 from PaginatedObj import PaginateObj
@@ -16,7 +16,7 @@ from config import Config
 
 app.register_blueprint(api.api)
 
-w2v_model = KeyedVectors.load(Config.W2V_MODEL, mmap='r')
+w2v_model = KeyedVectors.load(Config.W2V_MODEL_SG, mmap='r')
 
 @app.route("/")
 @app.route("/index")
@@ -54,10 +54,6 @@ def search():
   
   if request.args.get('qe') == 'w2v':
     vocab = tf_idf_vectorizer.get_feature_names_out()
-    # TODO 
-    # ganti query_expansion logic to return two results
-    #  1. original query
-    #  2. query expansion
     query = query_expansion(w2v_model, query, vocab, topn=int(nqe))
     query = sastrawi_stemmer.stem(query)  
   
@@ -75,23 +71,50 @@ def search():
   # (0, 741)      4.7657118861572245
   # query akhir: cari tempat lokasi
   # Nah di sini harus diolah nilai tf-idfnya
+  # print("query_vector")
+  # print(query_vector)
+  # my_matrix = query_vector.toarray()
+  # keyword_list = [tf_idf_vectorizer.vocabulary_.get(word) for word in query.split()]
+  # print("matrix", my_matrix)
+  # print("keyword_list", keyword_list)
+  # print("len", len(my_matrix))
+  # for i in range(0, len(my_matrix)):
+  #   for key in keyword_list:
+  #     if key != None:
+  #       key = (int)(key)
+  #     if my_matrix[i][key] > 0.0:
+  #       my_matrix[i][key] = my_matrix[i][key] * 2
+  # new_query_vector = sparse.csr_matrix(my_matrix)
+  # print("new_query_vector")
+  # print(new_query_vector)
+  # if request.args.get('qe') == 'w2v':
+  #   cosine_similarities = cosine_similarity(query_vector, tf_idf_sparse)
+  # else :
+  #   cosine_similarities = cosine_similarity(query_vector, tf_idf_sparse)
   
+  # buat list dari tuple yang berisi id dan nilai relevansi kemudian urutkan
   cosine_similarities = cosine_similarity(query_vector, tf_idf_sparse)
   docs_similarities = [(docs[i].id, cosine_similarities[0][i]) for i in range(len(docs))]
   docs_similarities.sort(key=lambda x: x[1], reverse=True)
+  
+  # hilangkan dokumen dengan nilai relevansi 0, dan buat paginasi dari nilai relevansi
   docs_similarities_score = [doc_similarity[1] for doc_similarity in docs_similarities if doc_similarity[1] > 0]
   paginated_docs_similarities_score = PaginateObj(docs_similarities_score, int(curr_page), 10) #returns the first page of 10 elements
-
+  
+  # buat list dari id dokumen dengan nilai relevansi lebih dari 0 dan hitung total dokumen ditemukan
   doc_ids = [doc_similarity[0] for doc_similarity in docs_similarities if doc_similarity[1] > 0]
   # query_results = Doc.query.filter(Doc.id.in_(doc_ids)).order_by(func.idx(doc_ids, Doc.id)) # error
   total_docs = len(doc_ids)
   
+  # ambil data dokumen dari database dengan id doc yang sesuai dengan list id pada listing baris 10
   order_expressions = [(Doc.id==i).desc() for i in doc_ids]
   query_results = Doc.query.filter(Doc.id.in_(doc_ids)).order_by(*order_expressions)
+  # buat paginasi berdasarkan data dokumen pada listing baris 11
   paginated_results = query_results.paginate(page=int(curr_page), per_page=10, error_out=False)
   zip_results = zip(paginated_results, paginated_docs_similarities_score.items)
 
   print('query akhir:', query)
+  # tampilkan data paginasi dokumen dan nilai relevansinya pada halaman web
   return render_template('index.html', page=paginated_results, total_docs=total_docs, zip_results=zip_results)
 
 
@@ -101,11 +124,18 @@ def qe():
     return render_template("qe.html", result='')
   query = request.args.get("query")
   query = preprocessing(query)
+  sastrawi_stemmer = StemmerFactory().create_stemmer()
+  query = sastrawi_stemmer.stem(query)
+
   nqe = request.args.get("nqe") or 1
   tf_idf_vectorizer, _= read_index()
   vocab = tf_idf_vectorizer.get_feature_names_out()
-  query = query_expansion(w2v_model, query, vocab, topn=int(nqe))
-  return render_template("qe.html", result=query)
+  query, detail_expansion = query_expansion(w2v_model, query, vocab, topn=int(nqe), detailed=True)
+  return render_template("qe.html", result=query, detail_expansion=detail_expansion)
+
+@app.route("/download_template")
+def download_template():
+  return send_from_directory('static', 'file/template.xlsx')
 
 # ======== ADMIN ========
 @app.route("/admin/login", methods=["GET", "POST"])

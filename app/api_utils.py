@@ -49,21 +49,21 @@ def from_df_to_database(df):
     )
 
 def build_index():
-  # ambil semua data dari database, ambil colomn yang 
+  # ambil semua data dari database, ambil colomn yang digu=nakan
   df = pd.read_sql(db.session.query(Doc).statement, db.session.connection())
+  # ambil ‘title’ atau judul dan jadikan sebagai dictionary
   input_title_only = df['title']
   # input_title_subject_abstract = df['title'] + '. ' + df['subject'] + '. '+ df['abstract']
   # input_title_subject = df['title'] + '. ' + df['subject']
   docs = input_title_only.to_dict()
+  # preproses data judul
   docs, _ = wordList_preprocessing(docs)
-  
-  # buat tfidf vectorizer dan simpan
-  # buat file idx to doc_id
+  # inisialisasi TfidfVectorizer dan bentuk kosa kata berdasarkan data judul di atas
   tfidf_vectorizer = TfidfVectorizer(norm=None, sublinear_tf=False)
+  # transformasikan setiap kata dari judul dan buat matrix tf-idf
   tfidf_vectorizer.fit(docs.values()) # This determines the vocabulary.
   tf_idf_sparse = tfidf_vectorizer.transform(docs.values())
-  idx_to_docid = df['id'].to_dict()
-  
+  # simpan vectorizer dan matrix tfidf
   with open('pickle_model/tfidf_vectorizer.pkl', 'wb') as file:
     pickle.dump(tfidf_vectorizer, file)
   with open('pickle_model/tfidf_sparse.pkl', 'wb') as file:
