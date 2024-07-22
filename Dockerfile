@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     libssl-dev \
     libffi-dev \
-    libmysqlclient-dev
+    libmariadb-dev
 
 # Salin requirements.txt dan install dependencies
 COPY requirements.txt requirements.txt
