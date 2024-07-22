@@ -24,7 +24,7 @@ from app.models import User
 import sqlalchemy as sa
 app.app_context().push()
 u = User(username='admin')
-u.set_password('admin')
+u.set_password('admin123#')
 db.session.add(u)
 db.session.commit()
 ```

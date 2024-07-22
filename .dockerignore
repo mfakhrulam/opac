@@ -1,0 +1,26 @@
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+
+# Ignore logs
+*.log
+
+# Ignore virtual environments
+.venv/
+.env/
+.flaskenv
+
+# Ignore git directory
+.git/
+.gitignore
+
+# Ignore node_modules
+node_modules/
+
+# Ignore other unnecessary files
+*.swp
+*.swo
