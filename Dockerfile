@@ -36,12 +36,10 @@ RUN ./download_model.sh
 # Download NLTK data
 RUN python -m nltk.downloader punkt
 
-# Jalankan migrasi database
-RUN flask db init
-RUN flask db migrate -m "Initial migration"
-RUN flask db upgrade
+# Salin entrypoint.sh ke dalam container
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-RUN python init_db.py
-
-# Tentukan command untuk menjalankan aplikasi menggunakan Gunicorn
+# Tentukan entrypoint dan command untuk menjalankan aplikasi
+ENTRYPOINT ["./entrypoint.sh"]
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "app:app"]

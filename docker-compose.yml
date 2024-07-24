@@ -10,7 +10,7 @@ services:
     environment:
       - MYSQL_HOST=db
       - MYSQL_USER=root
-      - MYSQL_PASSWORD=example
+      - MYSQL_PASSWORD=admin_root_pswd
       - MYSQL_DB=skripsi
     volumes:
       - ./we_model:/app/we_model
@@ -20,7 +20,7 @@ services:
     image: mysql:5.7
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: example
+      MYSQL_ROOT_PASSWORD: admin_root_pswd
       MYSQL_DATABASE: skripsi
     ports:
       - "3306:3306"
